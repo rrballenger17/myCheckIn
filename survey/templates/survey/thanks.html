@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}Successful Walk/Ride Day check-in!{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'libs/simpleStorage.min.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block body %}
+
+
+<script>
+function uploadActivity(){
+
+    $.get('/stravaupload/{{ bike_total }}/{{ run_total }}/{{ walk_total }}', function(data, status){
+        if(status == "success"){
+            $("#uploadDiv").html('<b>Your activity upload is complete.</b>')
+        }else{
+            $("#uploadDiv").html('<b>There was error while uploading the activity.</b>')
+        }
+    });
+
+}
+</script>
+
+
+
+<section class="thanks-page">
+    <div class="row">
+      <div class="span12">
+        <h1 class="thanks-page">Thank you, {{ person }}, for checking in for <span class="nowrap">Walk/Ride Day</span> <span class="nowrap">{{ month }}</span>!</h1>
+
+        {% if bike_total > 0 or run_total > 0 or walk_total > 0 %}
+            <br>
+            <div id="uploadDiv"><a href="#" onclick="uploadActivity();return false;"><b>Upload my commute</b></a> to <span color="orange">Strava</span></b></div>
+        {% endif %}
+
+
+
+        {% if calories_burned > 0.01 %}
+            <br>
+            <p class="lead">On Walk/Ride Day you burned {{ calories_burned }} calories {% if calorie_change > 0 %}(a {{ calorie_change }} calorie difference from your normal commute!){% endif %}. Whereas spending 30 minutes at the gym burns about 136 calories (<a href="http://www.livestrong.com/article/548348-how-many-calories-are-burned-in-one-hour-of-mixed-exercise/">Livestrong</a>).</p>
+            <br>
+            <p>Your calories burned is calculated by using your mode of transportation along with the number of minutes you specified on that mode. We  associate each mode (walking, biking, running) with a Metabolic Equivalent of Task (MET), which is a physiological measure expressing the energy cost of physical activities [<a href="https://en.wikipedia.org/wiki/Metabolic_equivalent">read more about it on Wikipedia</a>]. To simplify the calculation of your calories burned, we estimate based on a typical North American weight (150 lb), and MET values from the <a href="https://sites.google.com/site/compendiumofphysicalactivities/Activity-Categories">Compendium of Physical Activites</a> assuming a walking speed of 3.5 mph, a running/jogging speed of 5 mph, and a biking speed of 11 mph.</p>
+        {% endif %}
+            <br>
+        {% if carbon_savings > 0.01 %}
+            <p class="lead">You saved an estimated {{ carbon_savings }} kilograms of carbon dioxide on Walk/Ride Day by avoiding driving alone. Every kilogram of carbon dioxide emissions is like burning an entire pound of coal! (<a href="http://www.epa.gov/">epa.gov</a>)</p>
+            <br>
+            <p>This special "savings" number is based on a normal commute of driving to work. For all modes of transportation, we calculate carbon dioxide emissions by taking your time spent on a mode and multiplying by an estimated carbon dioxide output for that mode at an estimated average speed for that mode. These estimations are derived from findings by the <a href="http://www.apta.com/resources/statistics/Documents/FactBook/2013-APTA-Fact-Book.pdf">American Public Transportation Association</a>, the <a href="http://www.buses.org/files/ComparativeEnergy.pdf">American Bus Association</a>, and the <a href="http://nhts.ornl.gov/2009/pub/stt.pdf">Federal Highway Administration</a>.</p>
+        {% endif %}
+
+        <div class="center-block thanks-actions">
+          <div>
+            <a id="checkin-another" class="btn btn-large btn-primary" href="{% url 'commuterform' %}">Check in another person</a>
+            <br><span>Open in an incognito or private window if <strong>on a public computer</strong>. <a href="http://www.wikihow.com/Activate-Incognito-Mode" target="_blank">See how</a>.</span>
+          </div>
+          <div>
+            <a class="btn btn-large btn-warning" href="/leaderboard/2016/">View Leaderboard</a>
+            <br>
+          </div>
+        </div>
+        <hr>
+        <!-- Information about retail partners rewards. Personal codes here? -->
+
+        <p class="lead"><strong>Celebrate with our <a href="{% url 'retail:index' %}">retail partners</a> offering special discounts for Walk/Ride Day participants.</strong></p>
+        <br>
+        <a href="{% url 'retail:index' %}" target="_blank">View our retail map for discounts!</a>
+      </div>
+    </div>
+</section>
+
+
+
+
+{% endblock %}
