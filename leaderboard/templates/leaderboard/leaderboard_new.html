@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'libs/chosen/chosen.min.css' %}">
+{% endblock %}
+{% block javascript %}
+<script src="{% static 'libs/chosen/chosen.jquery.min.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+
+  function goToPage (event) {
+    var url = $(this).val(); // get selected value
+    if (url) { // require a URL
+        window.location = url; // redirect
+    }
+    event.preventDefault();
+    return false;
+  }
+
+  // bind change events to selects
+  $('#team_parent').bind('change', goToPage);
+  $('#checkin_month').bind('change', goToPage);
+  $('#company_size').bind('change', goToPage);
+  $('#sector_selection').bind('change', goToPage);
+
+  // initialize dropdowns
+  $('.lb-filter').chosen({ disable_search: true, width: "200px" });
+
+</script>
+{% endblock %}
+
+{% block body %}
+
+{% load absolutely %}
+{% load humanize %}
+
+<div class="row clearfix">
+    <div class="col-md-12 column">
+        <center><h1>Walk/Ride Day {{ year }} <br>Corporate Challenge Leaderboard</h1>
+    </div>
+</div>
+
+<div style="padding: 15px 0px;">
+
+<div class="lb-filter-container"><p><strong>By Month:</strong></p>
+  <select id="checkin_month" name="checkin_month" class="lb-filter">
+    {% if parent %}
+     <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector=selected_sector size=size selected_month='all' parentid=parent.id %}"
+        {% if selected_month == 'all' %}selected="selected"{% endif %}>
+    {% else %}
+     <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector=selected_sector size=size selected_month='all' %}"
+        {% if selected_month == 'all' %}selected="selected"{% endif %}>
+    {% endif %}
+        All Months
+    </option>
+  {% for month in months_list  %}
+    {% if parent %}
+     <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector=selected_sector size=size selected_month=month parentid=parent.id %}"
+        {% if selected_month == month %}selected="selected"{% endif %}>
+    {% else %}
+     <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector=selected_sector size=size selected_month=month %}"
+        {% if selected_month == month %}selected="selected"{% endif %}>
+    {% endif %}
+         {{ month|capfirst }}
+     </option>
+  {% endfor %}
+  </select>
+</div>
+
+<div class="lb-filter-container"><p><strong>By Company Size:</strong></p>
+  <select id="company_size" name="company_size" class="lb-filter">
+     <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector=selected_sector size='all' selected_month=selected_month %}"
+        {% if size == 'all' %}selected="selected"{% endif %}>
+        All Sizes
+    </option>
+  {% for item in sizes_list %}
+     <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector=selected_sector size=item.0 selected_month=selected_month %}"
+        {% if size == item.0 %}selected="selected"{% endif %}>
+         {{ item.1 }}
+     </option>
+  {% endfor %}
+  </select>
+</div>
+
+
+  <div class="lb-filter-container"><p><strong>By Company Sector:</strong></p>
+    <select id="sector_selection" name="sector_selection" class="lb-filter">
+       <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector='all' size=size selected_month=selected_month %}"
+          {% if selected_sector == 'all' %}selected="selected"{% endif %}>
+          All Sectors
+      </option>
+    {% for key, value in sectors_list.items %}
+       <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector=key size=size selected_month=selected_month %}"
+          {% if selected_sector == key %}selected="selected"{% endif %}>
+           {{ value }}
+       </option>
+    {% endfor %}
+    </select>
+  </div>
+
+  <div class="lb-filter-container"><p><strong>Looking for a Sub-Team?</strong></p>
+    <select id="team_parent" name="team_parent" class="lb-filter">
+      <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector='all' size='all' selected_month=selected_month %}">
+          Select a Sub-Team
+      </option>
+    {% for employer in employersWithSubteams %}
+       <option value="{% url 'leaderboard.views.latest_leaderboard' year=year sector='all' size='all' selected_month=selected_month parentid=employer.id %}"
+           {% if employer.name == parent.name %}selected="selected"{% endif %}>
+           {{employer.name}}
+       </option>
+    {% endfor %}
+    </select>
+  </div>
+
+</div>
+
+<!-- <div class="row">
+  <div class="col-sm-12 selections">
+ <p>Month: {{ selected_month }}. Sector: {{ selected_sector }}. Size: {{ size }}.</p>
+</div>
+</div> -->
+
+<div class="row totals">
+  <center>{% if parent %}<h3>{{ parent.name }}</h3>{% endif %}</center>
+  <div class="col-sm-4">
+    <p class="lead">Total Check-Ins</p>
+    <p class="total">{{ totals.total_checkins|floatformat:0|default:"0"|intcomma}}</p>
+  </div>
+  <div class="col-sm-4">
+    <p class="lead">Total CO<sub>2</sub> Saved</p>
+    <p class="total">{{ totals.total_carbon|absolutely|floatformat:0|default:"0"|intcomma }} kg</p>
+  </div>
+  <div class="col-sm-4">
+    <p class="lead">Total Calories Burned</p>
+    <p class="total">{{ totals.total_calories|floatformat:0|default:"0"|intcomma}} kcal</p>
+  </div>
+</div>
+
+<div class="row stats" style="padding: 15px 0px;">
+
+  <div class="col-sm-3">
+  {% if selected_month == 'all' %}
+    <h4>Average Participation To Date</h4>
+    <ol class="lbrank">
+    {% for key, value in ranks.percent_avg_participation %}
+      <li class="clearfix"><a class="list-group-item company" href="{% url 'leaderboard.views.company' year=year employerid=key.1.0 teamid=key.1.1 %}">{{ key.0 }}<span class="badge">{{ value|floatformat:1 }}%</span></a></li>
+    {% endfor %}
+    </ol>
+  {% else %}
+    <h4>Staff Participation</h4>
+    <ol class="lbrank">
+    {% for key, value in ranks.percent_participation %}
+      <li class="clearfix"><a class="list-group-item company" href="{% url 'leaderboard.views.company' year=year employerid=key.1.0 teamid=key.1.1 %}">{{ key.0 }}<span class="badge">{{ value|floatformat:1 }}%</span></a></li>
+    {% endfor %}
+    </ol>
+  {% endif %}
+  </div>
+  <div class="col-sm-3">
+    <h4>Green Commutes</h4>
+    <ol class="lbrank">
+    {% for key, value in ranks.percent_green_commuters %}
+      <li class="clearfix"><a class="list-group-item company" href="{% url 'leaderboard.views.company' year=year employerid=key.1.0 teamid=key.1.1 %}">{{ key.0 }}<span class="badge">{{ value|floatformat:1 }}%</span></a></li>
+    {% endfor %}
+    </ol>
+  </div>
+  <div class="col-sm-3">
+    <h4>Greener Switches</h4>
+    <ol class="lbrank">
+    {% for key, value in ranks.percent_green_switches %}
+      <li class="clearfix"><a class="list-group-item company" href="{% url 'leaderboard.views.company' year=year employerid=key.1.0 teamid=key.1.1 %}">{{ key.0}}<span class="badge">{{ value|floatformat:1 }}%</span></a></li>
+    {% endfor %}
+    </ol>
+  </div>
+  <div class="col-sm-3">
+    <h4>Healthier Switches</h4>
+    <ol class="lbrank">
+    {% for key, value in ranks.percent_healthy_switches %}
+      <li class="clearfix"><a class="list-group-item company" href="{% url 'leaderboard.views.company' year=year employerid=key.1.0 teamid=key.1.1 %}">{{ key.0 }}<span class="badge">{{ value|floatformat:1 }}%</span></a></li>
+    {% endfor %}
+    </ol>
+  </div>
+
+  <div class="col-sm-8 col-sm-offset-2">
+    <center>
+      <div class="panel">Looking for data on a team you don't see here? <br><a href="{% url 'leaderboard.views.company' year=year %}">Click to see all participating organizations</a>!</div>
+    </center>
+  </div>
+
+
+
+</div>
+{% endblock %}
