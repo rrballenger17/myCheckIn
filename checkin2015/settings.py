@@ -14,18 +14,18 @@ from envs.common import *
 
 
 # Private settings
-if ON_OPENSHIFT:
-    DB_NAME = os.environ['OPENSHIFT_APP_NAME']
-    DB_USER = os.environ['OPENSHIFT_POSTGRESQL_DB_USERNAME']
-    DB_PASSWORD = os.environ['OPENSHIFT_POSTGRESQL_DB_PASSWORD']
-    DB_HOST = os.environ['OPENSHIFT_POSTGRESQL_DB_HOST']
-    DB_PORT = os.environ['OPENSHIFT_POSTGRESQL_DB_PORT']
-else:
-    DB_NAME = os.environ['DB_NAME']
-    DB_USER = os.environ['DB_USER']
-    DB_PASSWORD = os.environ['DB_PASSWORD']
-    DB_HOST = os.environ['DB_HOST']
-    DB_PORT = os.environ['DB_PORT']
+#if ON_OPENSHIFT:
+#    DB_NAME = os.environ['OPENSHIFT_APP_NAME']
+#    DB_USER = os.environ['OPENSHIFT_POSTGRESQL_DB_USERNAME']
+#    DB_PASSWORD = os.environ['OPENSHIFT_POSTGRESQL_DB_PASSWORD']
+#    DB_HOST = os.environ['OPENSHIFT_POSTGRESQL_DB_HOST']
+#    DB_PORT = os.environ['OPENSHIFT_POSTGRESQL_DB_PORT']
+#else:
+    DB_NAME = "databasename"
+    DB_USER = "greendjango"
+    DB_PASSWORD = "greendjango"
+    DB_HOST = "gsitesttwo.cedavla3pzeq.us-east-1.rds.amazonaws.com"
+    DB_PORT = "5432"
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
